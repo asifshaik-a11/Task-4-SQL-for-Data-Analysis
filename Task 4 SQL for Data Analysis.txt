@@ -1,0 +1,28 @@
+Task 4: SQL for Data Analysis
+1.Basic Filtering, Sorting, and Grouping (a)
+A: Find UK Customers and Sort by Age,This query uses SELECT to choose columns, WHERE to filter the data, and ORDER BY to sort the results.
+
+2. Count Customers per Country (GROUP BY)
+B: This query uses GROUP BY to aggregate data based on the country and COUNT as an aggregate function.
+
+3.Combining Data with JOINS (b)
+C: Orders with Customer Names (INNER JOIN),INNER JOIN returns only the rows where there is a match in both the Customers and Orders tables (i.e., customers who have placed orders).
+
+4.All Customers and Their Shipping Status (LEFT JOIN)
+D:LEFT JOIN returns all customers, even if they do not have a corresponding record in the Shippings table (their status will appear as NULL).
+
+5.All Shipping Records and Linked Customers (RIGHT JOIN)
+E:RIGHT JOIN returns all records from the Shippings table and the matching records from the Customers table. (In this specific dataset, since every shipping record has a customer ID, the result is identical to an INNER JOIN, but the logic is different.)
+
+6.Subqueries and Aggregate Analysis (c, d)
+F:Customers with High-Value Orders (Subquery),This query uses a subquery to first find the customer_ids who placed an order amount greater than 500, and then selects the details of those customers.
+
+7.Total and Average Spending Per Customer (SUM, AVG)
+G:This query uses the aggregate functions SUM() and AVG() to calculate key metrics, grouping the results by customer.
+
+8.Creating Views and Optimization (e, f)
+I: Create a View for Repeatable Analysis,A view creates a virtual table based on the result-set of a query. This view provides a summary of customers' lifetime value (LTV) and total orders, making the metric easy to access without re-writing the complex JOIN/GROUP BY logic.
+
+9.9: Optimize Query Performance with an Index
+
+J:Indexes speed up data retrieval operations (especially WHERE clause lookups and JOIN operations) by creating a quick reference structure. Since analysts might frequently look up customers by last name, creating an index on that column is an efficient optimization.
