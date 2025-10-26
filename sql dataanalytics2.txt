@@ -1,0 +1,185 @@
+SQL Data Analysis Guide
+
+This document provides a set of SQL queries designed to analyze data from the Customers, Orders, and Shippings tables, covering all requested analytical techniques.
+
+Table Schema Review
+
+Table
+
+Key Column
+
+Description
+
+Customers
+
+customer_id
+
+Customer details
+
+Orders
+
+order_id
+
+Order details, links to Customers via customer_id
+
+Shippings
+
+shipping_id
+
+Shipping status, links to Customers via customer_id
+
+1. Basic Filtering, Sorting, and Grouping (a)
+
+Query 1: Find UK Customers and Sort by Age
+
+This query uses SELECT to choose columns, WHERE to filter the data, and ORDER BY to sort the results.
+
+SELECT
+    first_name,
+    last_name,
+    age
+FROM
+    Customers
+WHERE
+    country = 'UK'
+ORDER BY
+    age DESC;
+
+
+Query 2: Count Customers per Country (GROUP BY)
+
+This query uses GROUP BY to aggregate data based on the country and COUNT as an aggregate function.
+
+SELECT
+    country,
+    COUNT(customer_id) AS total_customers
+FROM
+    Customers
+GROUP BY
+    country
+ORDER BY
+    total_customers DESC;
+
+
+2. Combining Data with JOINS (b)
+
+Query 3: Orders with Customer Names (INNER JOIN)
+
+INNER JOIN returns only the rows where there is a match in both the Customers and Orders tables (i.e., customers who have placed orders).
+
+SELECT
+    C.first_name,
+    C.last_name,
+    O.item,
+    O.amount
+FROM
+    Customers C
+INNER JOIN
+    Orders O ON C.customer_id = O.customer_id;
+
+
+Query 4: All Customers and Their Shipping Status (LEFT JOIN)
+
+LEFT JOIN returns all customers, even if they do not have a corresponding record in the Shippings table (their status will appear as NULL).
+
+SELECT
+    C.first_name,
+    C.last_name,
+    S.status
+FROM
+    Customers C
+LEFT JOIN
+    Shippings S ON C.customer_id = S.customer_id;
+
+
+Query 5: All Shipping Records and Linked Customers (RIGHT JOIN)
+
+RIGHT JOIN returns all records from the Shippings table and the matching records from the Customers table. (In this specific dataset, since every shipping record has a customer ID, the result is identical to an INNER JOIN, but the logic is different.)
+
+SELECT
+    C.first_name,
+    S.shipping_id,
+    S.status
+FROM
+    Customers C
+RIGHT JOIN
+    Shippings S ON C.customer_id = S.customer_id;
+
+
+3. Subqueries and Aggregate Analysis (c, d)
+
+Query 6: Customers with High-Value Orders (Subquery)
+
+This query uses a subquery to first find the customer_ids who placed an order amount greater than 500, and then selects the details of those customers.
+
+SELECT
+    first_name,
+    last_name,
+    country
+FROM
+    Customers
+WHERE
+    customer_id IN (
+        SELECT DISTINCT
+            customer_id
+        FROM
+            Orders
+        WHERE
+            amount > 500
+    );
+
+
+Query 7: Total and Average Spending Per Customer (SUM, AVG)
+
+This query uses the aggregate functions SUM() and AVG() to calculate key metrics, grouping the results by customer.
+
+SELECT
+    C.first_name,
+    C.last_name,
+    SUM(O.amount) AS total_spent,
+    AVG(O.amount) AS average_order_value
+FROM
+    Customers C
+JOIN
+    Orders O ON C.customer_id = O.customer_id
+GROUP BY
+    C.customer_id, C.first_name, C.last_name
+ORDER BY
+    total_spent DESC;
+
+
+4. Creating Views and Optimization (e, f)
+
+Query 8: Create a View for Repeatable Analysis
+
+A view creates a virtual table based on the result-set of a query. This view provides a summary of customers' lifetime value (LTV) and total orders, making the metric easy to access without re-writing the complex JOIN/GROUP BY logic.
+
+CREATE VIEW CustomerOrderSummary AS
+SELECT
+    C.customer_id,
+    C.first_name,
+    C.last_name,
+    C.country,
+    SUM(O.amount) AS lifetime_value,
+    COUNT(O.order_id) AS total_orders
+FROM
+    Customers C
+JOIN
+    Orders O ON C.customer_id = O.customer_id
+GROUP BY
+    C.customer_id, C.first_name, C.last_name, C.country;
+
+-- Example of querying the new view
+SELECT * FROM CustomerOrderSummary
+WHERE lifetime_value > 500;
+
+
+Query 9: Optimize Query Performance with an Index
+
+Indexes speed up data retrieval operations (especially WHERE clause lookups and JOIN operations) by creating a quick reference structure. Since analysts might frequently look up customers by last name, creating an index on that column is an efficient optimization.
+
+CREATE INDEX idx_customer_last_name
+ON Customers (last_name);
+
+
+Reasoning for Index: This index is useful for fast lookups when searching for a specific customer (WHERE last_name = 'Doe') or when joining the Customers table on the last name (though customer_id is the primary join key, last_name lookups are common).
